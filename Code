@@ -1,0 +1,400 @@
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
+#include <Servo.h>
+
+// ===============================
+// TFT
+// ===============================
+#define TFT_CS   10
+#define TFT_DC    9
+#define TFT_RST  8
+
+Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+
+// ===============================
+// SERVOS
+// ===============================
+#define LR_SERVO_PIN 5   // Left / Right
+#define UD_SERVO_PIN 6   // Up / Down
+
+Servo lrServo;
+Servo udServo;
+
+// ===============================
+// ULTRASONIC
+// ===============================
+#define TRIG_PIN 7
+#define ECHO_PIN 4
+
+// ===============================
+// SCAN SETTINGS
+// ===============================
+#define LR_MIN 20
+#define LR_MAX 160
+
+#define UD_MIN 60
+#define UD_MAX 120
+
+#define LR_STEP 5
+#define UD_STEP 10
+
+#define DETECT_DISTANCE 80
+
+// ===============================
+// SCREEN
+// Rotation 1 = 160 x 128
+// ===============================
+#define SCREEN_W 160
+#define SCREEN_H 128
+
+// Scanner display area
+#define LEFT_X 10
+#define RIGHT_X 149
+#define TOP_Y 25
+#define BOTTOM_Y 115
+
+// ===============================
+// COLORS
+// ===============================
+#define BG_COLOR     ST7735_BLACK
+#define GRID_COLOR   ST7735_GREEN
+#define SCAN_COLOR   ST7735_YELLOW
+#define DETECT_COLOR ST7735_RED
+#define TEXT_COLOR   ST7735_WHITE
+
+// ===============================
+// Convert servo angles to screen
+// ===============================
+int angleToX(int angle)
+{
+  return map(angle, LR_MIN, LR_MAX, LEFT_X, RIGHT_X);
+}
+
+int angleToY(int angle)
+{
+  return map(angle, UD_MIN, UD_MAX, TOP_Y, BOTTOM_Y);
+}
+
+// ===============================
+// Ultrasonic distance
+// ===============================
+long getDistance()
+{
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+
+  digitalWrite(TRIG_PIN, LOW);
+
+  long duration = pulseIn(ECHO_PIN, HIGH, 30000);
+
+  if (duration == 0)
+    return 999;
+
+  long distance = duration / 58;
+
+  return distance;
+}
+
+// ===============================
+// Draw scanner background
+// ===============================
+void drawBackground()
+{
+  tft.fillScreen(BG_COLOR);
+
+  // Title
+  tft.setTextSize(1);
+  tft.setTextColor(TEXT_COLOR);
+  tft.setCursor(35, 3);
+  tft.print("2-AXIS SCANNER");
+
+  // Scanner border
+  tft.drawRect(
+    LEFT_X,
+    TOP_Y,
+    RIGHT_X - LEFT_X + 1,
+    BOTTOM_Y - TOP_Y + 1,
+    GRID_COLOR
+  );
+
+  // Horizontal grid lines
+  for (int y = TOP_Y + 15; y < BOTTOM_Y; y += 15)
+  {
+    tft.drawFastHLine(
+      LEFT_X,
+      y,
+      RIGHT_X - LEFT_X + 1,
+      GRID_COLOR
+    );
+  }
+
+  // Vertical grid lines
+  for (int x = LEFT_X + 20; x < RIGHT_X; x += 20)
+  {
+    tft.drawFastVLine(
+      x,
+      TOP_Y,
+      BOTTOM_Y - TOP_Y + 1,
+      GRID_COLOR
+    );
+  }
+
+  // Direction labels
+  tft.setTextColor(TEXT_COLOR);
+
+  tft.setCursor(1, 68);
+  tft.print("L");
+
+  tft.setCursor(152, 68);
+  tft.print("R");
+
+  tft.setCursor(76, 17);
+  tft.print("U");
+
+  tft.setCursor(76, 117);
+  tft.print("D");
+
+  // Bottom information
+  tft.setCursor(2, 122);
+  tft.print("SCANNING");
+}
+
+// ===============================
+// Draw current scanner position
+// ===============================
+void drawScannerPosition(int lrAngle, int udAngle)
+{
+  int x = angleToX(lrAngle);
+  int y = angleToY(udAngle);
+
+  // Vertical scanner line
+  tft.drawFastVLine(
+    x,
+    TOP_Y + 1,
+    BOTTOM_Y - TOP_Y - 1,
+    SCAN_COLOR
+  );
+
+  // Horizontal scanner line
+  tft.drawFastHLine(
+    LEFT_X + 1,
+    y,
+    RIGHT_X - LEFT_X - 1,
+    SCAN_COLOR
+  );
+
+  // Scanner position
+  tft.fillCircle(x, y, 2, SCAN_COLOR);
+}
+
+// ===============================
+// Draw RED detection line
+// ===============================
+void drawDetection(int lrAngle, int udAngle)
+{
+  int x = angleToX(lrAngle);
+  int y = angleToY(udAngle);
+
+  // RED horizontal line
+  tft.drawFastHLine(
+    x - 6,
+    y,
+    13,
+    DETECT_COLOR
+  );
+
+  // RED vertical line
+  tft.drawFastVLine(
+    x,
+    y - 6,
+    13,
+    DETECT_COLOR
+  );
+
+  // Red center
+  tft.fillCircle(
+    x,
+    y,
+    3,
+    DETECT_COLOR
+  );
+}
+
+// ===============================
+// Show values
+// ===============================
+void showInfo(int lrAngle, int udAngle, long distance)
+{
+  tft.fillRect(0, 18, 160, 7, BG_COLOR);
+
+  tft.setTextSize(1);
+  tft.setTextColor(TEXT_COLOR);
+
+  tft.setCursor(2, 18);
+  tft.print("X:");
+  tft.print(lrAngle);
+
+  tft.print(" Y:");
+  tft.print(udAngle);
+
+  tft.print(" D:");
+
+  if (distance >= 999)
+    tft.print("--");
+  else
+    tft.print(distance);
+
+  tft.print("cm");
+}
+
+// ===============================
+// Scan one position
+// ===============================
+void scanPosition(int lrAngle, int udAngle)
+{
+  // Move LEFT/RIGHT servo
+  lrServo.write(lrAngle);
+  delay(70);
+
+  // Measure
+  long distance = getDistance();
+
+  // Draw scanner cross
+  drawScannerPosition(lrAngle, udAngle);
+
+  // Detection
+  if (distance <= DETECT_DISTANCE)
+  {
+    drawDetection(lrAngle, udAngle);
+  }
+
+  // Info
+  showInfo(lrAngle, udAngle, distance);
+
+  // Serial monitor
+  Serial.print("X=");
+  Serial.print(lrAngle);
+
+  Serial.print(" Y=");
+  Serial.print(udAngle);
+
+  Serial.print(" Distance=");
+
+  if (distance >= 999)
+    Serial.println("NO ECHO");
+  else
+  {
+    Serial.print(distance);
+    Serial.println(" cm");
+  }
+
+  delay(30);
+}
+
+// ===============================
+// SETUP
+// ===============================
+void setup()
+{
+  Serial.begin(9600);
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  // Attach servos
+  lrServo.attach(LR_SERVO_PIN);
+  udServo.attach(UD_SERVO_PIN);
+
+  // Starting position
+  lrServo.write(90);
+  udServo.write(90);
+
+  delay(500);
+
+  // TFT
+  tft.initR(INITR_BLACKTAB);
+
+  // YOUR REQUESTED ROTATION
+  tft.setRotation(1);
+
+  drawBackground();
+
+  delay(1000);
+}
+
+// ===============================
+// MAIN SCAN
+// ===============================
+void loop()
+{
+  // ==========================================
+  // UP/DOWN POSITION 1
+  // ==========================================
+
+  udServo.write(UD_MIN);
+  delay(250);
+
+  // LEFT → RIGHT
+  for (int x = LR_MIN; x <= LR_MAX; x += LR_STEP)
+  {
+    scanPosition(x, UD_MIN);
+  }
+
+  // ==========================================
+  // UP/DOWN MOVES
+  // ==========================================
+
+  udServo.write(UD_MIN + UD_STEP);
+  delay(250);
+
+  // RIGHT → LEFT
+  for (int x = LR_MAX; x >= LR_MIN; x -= LR_STEP)
+  {
+    scanPosition(x, UD_MIN + UD_STEP);
+  }
+
+  // ==========================================
+  // Continue UP/DOWN
+  // ==========================================
+
+  for (int y = UD_MIN + UD_STEP * 2;
+       y <= UD_MAX;
+       y += UD_STEP)
+  {
+    // ONLY UP/DOWN SERVO MOVES HERE
+    udServo.write(y);
+    delay(250);
+
+    // Alternate horizontal direction
+    int row = (y - UD_MIN) / UD_STEP;
+
+    if (row % 2 == 0)
+    {
+      // LEFT → RIGHT
+      for (int x = LR_MIN; x <= LR_MAX; x += LR_STEP)
+      {
+        scanPosition(x, y);
+      }
+    }
+    else
+    {
+      // RIGHT → LEFT
+      for (int x = LR_MAX; x >= LR_MIN; x -= LR_STEP)
+      {
+        scanPosition(x, y);
+      }
+    }
+  }
+
+  // Complete scan
+  delay(500);
+
+  // Start fresh
+  drawBackground();
+
+  delay(300);
+}
