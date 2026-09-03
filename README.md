@@ -1,4 +1,4 @@
-# 2-Axis Arduino Sonar Scanner 📡
+# 2-Axis Arduino Ultrasonic SCANNER 📡
 
 A DIY **2-axis ultrasonic scanning system** built with an Arduino Uno, two SG90 servo motors, an HC-SR04 ultrasonic sensor, and an ST7735 1.8" TFT display.
 
