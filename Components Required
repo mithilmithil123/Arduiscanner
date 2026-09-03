@@ -1,0 +1,74 @@
+# 🔧 All Components
+
+## Main Electronics
+
+- Arduino Uno
+- 1.8" ST7735 TFT LCD display (128×160)
+- HC-SR04 ultrasonic distance sensor
+- 2× SG90 9g servo motors
+
+## Power
+
+- External 5V power supply for the servo motors
+- USB cable for Arduino Uno
+- Jumper wires
+
+## Prototyping
+
+- Breadboard
+- Male-to-male jumper wires
+- Male-to-female jumper wires
+- Female-to-female jumper wires
+
+## Mechanical Parts
+
+- 2-axis servo mounting/bracket
+- Servo horns
+- Screws for mounting the servos
+- Robot/project chassis or mounting platform
+- Sensor mounting bracket
+
+## Optional Components
+
+These are not required for the basic scanner, but can be added for future upgrades:
+
+- Buzzer
+- LEDs
+- Push buttons
+- HC-05 Bluetooth module
+- MicroSD card module
+- MicroSD card
+- ESP32
+- ESP32-CAM
+- Camera mounting bracket
+
+---
+
+# 📦 Complete Parts Checklist
+
+| Component | Quantity | Required |
+|---|---:|---|
+| Arduino Uno | 1 | ✅ |
+| ST7735 1.8" TFT | 1 | ✅ |
+| HC-SR04 ultrasonic sensor | 1 | ✅ |
+| SG90 servo | 2 | ✅ |
+| External 5V power supply | 1 | ✅ |
+| Breadboard | 1 | Recommended |
+| Jumper wires | Several | ✅ |
+| Servo mounting bracket | 1 set | Recommended |
+| Servo horns | 2+ | ✅ |
+| Mounting screws | Several | Recommended |
+| USB cable | 1 | ✅ |
+
+---
+
+# 🧰 Tools
+
+You may also need:
+
+- Computer
+- Arduino IDE
+- Small screwdriver
+- Wire cutters/strippers
+- Soldering iron (optional)
+- Solder (optional)
