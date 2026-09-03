@@ -1,0 +1,73 @@
+# 🔌 Wiring
+
+## 🖥️ ST7735 1.8" TFT → Arduino Uno
+
+| TFT Pin | Arduino Uno |
+|---|---|
+| VCC | 5V* |
+| GND | GND |
+| CS | D10 |
+| RESET | D8 |
+| A0 / DC | D9 |
+| SDA / MOSI | D11 |
+| SCK | D13 |
+| LED | 5V* |
+
+> ⚠️ Check the voltage requirements of your exact TFT module before using 5V. Some ST7735 boards require 3.3V.
+
+---
+
+## ↔️ Left/Right Servo → Arduino Uno
+
+This servo controls the **horizontal scanning axis**.
+
+| Servo Wire | Connection |
+|---|---|
+| Signal (orange/yellow) | D5 |
+| VCC (red) | External 5V |
+| GND (brown/black) | External GND |
+
+---
+
+## ↕️ Up/Down Servo → Arduino Uno
+
+This servo controls the **vertical scanning axis**.
+
+| Servo Wire | Connection |
+|---|---|
+| Signal (orange/yellow) | D6 |
+| VCC (red) | External 5V |
+| GND (brown/black) | External GND |
+
+---
+
+## 📡 HC-SR04 → Arduino Uno
+
+| HC-SR04 Pin | Arduino Uno |
+|---|---|
+| VCC | 5V |
+| GND | GND |
+| TRIG | D7 |
+| ECHO | D4 |
+
+---
+
+# ⚡ Power Wiring
+
+The servos should be powered from a separate 5V supply.
+
+```text
+             External 5V
+                 │
+          ┌──────┴──────┐
+          │             │
+      Servo 1 VCC    Servo 2 VCC
+          │             │
+          └─────────────┘
+
+External GND
+     │
+     ├── Servo 1 GND
+     ├── Servo 2 GND
+     │
+     └── Arduino GND
